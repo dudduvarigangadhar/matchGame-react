@@ -250,56 +250,127 @@ const imagesList = [
 
 // Replace your code here
 class App extends Component {
-  state = {activeId: tabsList[0].tabId}
-
-  getTheCategory = () => {
-    const {activeId} = this.state
+  state = {
+    activeId: tabsList[0].tabId,
+    imageUrl: imagesList[0],
+    score: 0,
+    timer: 60,
+    isGameInProgress: true,
   }
 
-  changeCategory = () => {}
+  componentDidMount() {
+    this.timer = setInterval(this.tick, 1000)
+  }
+
+  changeCategory = tabDetails => {
+    const {tabId} = tabDetails
+    this.setState({activeId: tabId})
+  }
+
+  imageCheckAndChange = imageDetails => {
+    const {id} = imageDetails
+    const {imageUrl} = this.state
+    if (id === imageUrl.id) {
+      this.setState(prevState => ({score: prevState.score + 1}))
+      const imgUrl = imagesList[Math.floor(Math.random() * 30)]
+      this.setState({imageUrl: imgUrl})
+    } else {
+      this.setState({isGameInProgress: false})
+    }
+  }
+
+  tick = () => {
+    const {timer} = this.state
+    if (timer >= 0) {
+      this.setState(prevState => ({timer: prevState.timer - 1}))
+    }
+  }
 
   render() {
-    const imgUrl = imagesList[Math.floor(Math.random() * 30)]
-    const {id, imageUrl, thumbnailUrl, category} = imgUrl
+    const {activeId, isGameInProgress, imageUrl, score, timer} = this.state
+
+    const categoryImages = imagesList.filter(
+      eachObject => eachObject.category === activeId,
+    )
+
     return (
-      <div className="match-game-container">
-        <div className="navbar-container">
-          <img
-            src="https://assets.ccbp.in/frontend/react-js/match-game-website-logo.png"
-            alt="webiste logo"
-            className="match-game-logo"
-          />
-          <div className="score-and-timer-container">
-            <p className="score">Score:0</p>
+      <div className="game-container">
+        <div className="match-game-container">
+          <div className="navbar-container">
             <img
-              src="https://assets.ccbp.in/frontend/react-js/match-game-timer-img.png"
-              alt="timer"
-              className="timer-logo"
+              src="https://assets.ccbp.in/frontend/react-js/match-game-website-logo.png"
+              alt="webiste logo"
+              className="match-game-logo"
             />
-            <p className="timer-in-seconds"> 60 sec</p>
+            <div className="score-and-timer-container">
+              <p className="score">Score: {score}</p>
+              <img
+                src="https://assets.ccbp.in/frontend/react-js/match-game-timer-img.png"
+                alt="timer"
+                className="timer-logo"
+              />
+              <p className="timer-in-seconds"> {timer} sec</p>
+            </div>
           </div>
-        </div>
-        <div className="thumbnail-imageContainer">
-          <img src={thumbnailUrl} alt={category} className="thumbnail-image" />
-        </div>
-        <div className="category-container">
-          <button type="button" className="category-button">
-            Fruits
-          </button>
-          <button
-            type="button"
-            className="category-button"
-            onClick={this.changeCategory}
-          >
-            Animals
-          </button>
-          <button
-            type="button"
-            className="category-button"
-            onClick={this.changeCategory}
-          >
-            Places
-          </button>
+          {isGameInProgress && (
+            <div className="thumbnail-imageContainer">
+              <img
+                src={imageUrl.thumbnailUrl}
+                alt={imageUrl.category}
+                className="thumbnail-image"
+              />
+
+              <ul className="category-container">
+                {tabsList.map(eachTab => (
+                  <li key={eachTab.tabId}>
+                    <button
+                      type="button"
+                      className="category-button"
+                      onClick={() => this.changeCategory(eachTab)}
+                    >
+                      {eachTab.displayText}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <div className="category-flex-container">
+                <ul className="category-image-container">
+                  {categoryImages.map(eachObject => (
+                    <li key={eachObject.id}>
+                      <button
+                        type="button"
+                        className="image-button"
+                        onClick={() => this.imageCheckAndChange(eachObject)}
+                      >
+                        <img
+                          src={eachObject.imageUrl}
+                          alt={eachObject.category}
+                          className="category-image"
+                        />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+          {!isGameInProgress && (
+            <div>
+              <div className="game-over">
+                <img
+                  src="https://assets.ccbp.in/frontend/react-js/match-game-trophy.png"
+                  alt="win"
+                  className="trophy"
+                />
+                <p>YOUR SCORE</p>
+                <p>{score}</p>
+                <button type="button">
+                  <img src="" alt="play again" />
+                  <p>Play Again</p>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
